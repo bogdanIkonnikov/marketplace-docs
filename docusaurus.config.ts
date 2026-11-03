@@ -75,9 +75,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      title: 'PM',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'Логотип PM',
         src: 'img/logo.svg',
       },
       items: [
@@ -85,11 +85,11 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Документация',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/bogdanIkonnikov/marketplace-docs',
           label: 'GitHub',
           position: 'right',
         },
@@ -102,7 +102,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
+              label: 'Документация',
               to: '/docs/intro',
             },
           ],
@@ -133,7 +133,7 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/bogdanIkonnikov/marketplace-docs',
             },
           ],
         },
