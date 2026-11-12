@@ -1,0 +1,660 @@
+openapi: 3.1.2
+info:
+  title: Т-Маркет — Auth Service
+  version: 1.0.0
+  description: |
+    Целевой контракт MVP для разделов 2.1 и 2.2 REST-спецификации.
+    HTTP-слой Auth ещё предстоит реализовать. Состояние кода и открытые вопросы
+    описаны на странице «Контракт Auth Service» в документации проекта.
+
+    Один аккаунт имеет одну роль. Публичная регистрация создаёт аккаунт BUYER
+    или SELLER. Роль ADMIN назначается вне публичного API.
+
+    Access JWT передаётся в Authorization: Bearer <accessToken>.
+    Короткоживущий access JWT действует 15 минут. Claim role содержит полномочие
+    ROLE_BUYER, ROLE_SELLER или ROLE_ADMIN, а sub — UUID аккаунта.
+
+    Refresh JWT хранится в HttpOnly-cookie refreshToken и действует 30 дней.
+    Сервер проверяет подпись, срок и назначение токена и загружает аккаунт.
+    Refresh-сессии в БД отсутствуют. Выдача нового refresh JWT и очистка
+    cookie при выходе не отзывают уже выпущенные токены.
+servers:
+  - url: /
+    description: API на текущем origin. Порт Auth Service по умолчанию 8081.
+tags:
+  - name: Auth
+    description: Регистрация и управление сессией
+  - name: Users
+    description: Собственный профиль аккаунта
+
+paths:
+  /api/v1/auth/register/buyer:
+    post:
+      tags: [Auth]
+      operationId: registerBuyer
+      summary: Зарегистрировать покупателя
+      description: Публичная операция. Создаёт аккаунт BUYER и открывает сессию.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBuyerRequest'
+            example:
+              email: buyer@example.test
+              password: example-password-123
+              fullName: Анна Иванова
+              phone: '+79990000001'
+      responses:
+        '201':
+          description: Аккаунт покупателя создан.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/RefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                buyer:
+                  $ref: '#/components/examples/BuyerSession'
+        '400':
+          $ref: '#/components/responses/MalformedJson'
+        '409':
+          $ref: '#/components/responses/EmailConflict'
+        '422':
+          $ref: '#/components/responses/FieldValidation'
+
+  /api/v1/auth/register/seller:
+    post:
+      tags: [Auth]
+      operationId: registerSeller
+      summary: Зарегистрировать продавца
+      description: |
+        Публичная операция. Создаёт активный аккаунт SELLER и открывает сессию
+        сразу после успешной регистрации. ИНН задаётся при регистрации.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterSellerRequest'
+            example:
+              email: seller@example.test
+              password: example-password-123
+              companyName: Магазин «Пример»
+              inn: '7701234560'
+              description: Товары для дома
+      responses:
+        '201':
+          description: Аккаунт продавца создан и активен.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/RefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                seller:
+                  $ref: '#/components/examples/SellerSession'
+        '400':
+          $ref: '#/components/responses/MalformedJson'
+        '409':
+          $ref: '#/components/responses/EmailConflict'
+        '422':
+          description: Ошибки полей, включая ИНН неверного формата.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblem'
+              example:
+                type: ValidationError
+                title: Unprocessable Entity
+                status: 422
+                details:
+                  inn: ИНН должен состоять из 10 или 12 цифр
+                instance: /api/v1/auth/register/seller
+                timestamp: '2026-11-11T12:00:00Z'
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Войти по email и паролю
+      description: Публичная операция для аккаунтов BUYER, SELLER и ADMIN.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: buyer@example.test
+              password: example-password-123
+      responses:
+        '200':
+          description: Сессия открыта.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/RefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                buyer:
+                  $ref: '#/components/examples/BuyerSession'
+        '400':
+          $ref: '#/components/responses/MalformedJson'
+        '401':
+          description: Неизвестный email или неверный пароль.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Unauthorized
+                status: 401
+                detail: Неверный email или пароль
+                instance: /api/v1/auth/login
+                timestamp: '2026-11-11T12:00:00Z'
+        '422':
+          $ref: '#/components/responses/FieldValidation'
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshSession
+      summary: Обновить сессию по refresh-cookie
+      description: |
+        Браузер передаёт Cookie: refreshToken=<refresh JWT>. Тело запроса
+        отсутствует либо содержит пустой JSON-объект, который отправляет Axios.
+        Действующий access JWT для обновления сессии не требуется.
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: Выданы новый access JWT и новая refresh-cookie.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/RefreshCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessTokenResponse'
+              example:
+                accessToken: example.header.signature
+        '401':
+          description: Cookie отсутствует, токен недействителен, истёк или аккаунт не найден.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              example:
+                type: about:blank
+                title: Unauthorized
+                status: 401
+                detail: Сессия недействительна или истекла
+                instance: /api/v1/auth/refresh
+                timestamp: '2026-11-11T12:00:00Z'
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Выйти из сессии
+      description: |
+        Проверяет access JWT и отправляет заголовок для очистки refresh-cookie.
+        Тело запроса и наличие refresh-cookie не требуются.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Браузеру отправлена команда удалить refresh-cookie. Тело ответа отсутствует.
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/ClearRefreshCookie'
+        '401':
+          $ref: '#/components/responses/AccessUnauthorized'
+
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      operationId: getCurrentUser
+      summary: Получить собственный профиль
+      description: Доступен аккаунтам BUYER, SELLER и ADMIN с действующим access JWT.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/CurrentProfile'
+        '401':
+          $ref: '#/components/responses/AccessUnauthorized'
+    patch:
+      tags: [Users]
+      operationId: updateCurrentUser
+      summary: Обновить собственный профиль
+      description: |
+        BUYER может изменить fullName и phone. SELLER может изменить companyName
+        и description. ADMIN не имеет редактируемых полей. ИНН, email, роль,
+        идентификатор, служебные даты и баланс через этот маршрут не меняются.
+        Пропущенные поля сохраняются, пустой объект оставляет профиль без изменений.
+        null или пробельная строка очищают fullName, phone и description.
+        companyName должно остаться непустым.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+            examples:
+              buyer:
+                summary: Изменить имя и очистить телефон
+                value:
+                  fullName: Анна Петрова
+                  phone: null
+              seller:
+                summary: Изменить описание магазина
+                value:
+                  description: Товары для дома и сада
+      responses:
+        '200':
+          $ref: '#/components/responses/CurrentProfile'
+        '400':
+          $ref: '#/components/responses/MalformedJson'
+        '401':
+          $ref: '#/components/responses/AccessUnauthorized'
+        '422':
+          description: Поля недопустимы для текущей роли, недоступны для записи или содержат невалидные значения.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblem'
+              example:
+                type: ValidationError
+                title: Unprocessable Entity
+                status: 422
+                details:
+                  inn: ИНН нельзя изменить после регистрации
+                instance: /api/v1/users/me
+                timestamp: '2026-11-11T12:00:00Z'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Короткоживущий access JWT.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+      description: |
+        Refresh JWT, который браузер автоматически передаёт в рамках области
+        действия cookie. При запросах с другого origin учитывайте режим
+        credentials и ограничения SameSite.
+  headers:
+    RefreshCookie:
+      required: true
+      description: |
+        HttpOnly, Secure, SameSite=Strict, Path=/api/v1/auth, Max-Age=2592000.
+        Path охватывает маршруты под /api/v1/auth. Эту cookie читает обработчик refresh.
+      schema:
+        type: string
+      example: 'refreshToken=example.header.signature; Max-Age=2592000; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict'
+    ClearRefreshCookie:
+      required: true
+      description: Удаляет cookie по тому же имени и пути с Max-Age=0.
+      schema:
+        type: string
+      example: 'refreshToken=; Max-Age=0; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict'
+  schemas:
+    Email:
+      type: string
+      format: email
+      description: При поиске и сохранении сервер убирает внешние пробелы и приводит email к нижнему регистру.
+    Password:
+      type: string
+      format: password
+      writeOnly: true
+      minLength: 1
+      pattern: '\S'
+      description: Непустой пароль с хотя бы одним непробельным символом.
+    RegistrationPassword:
+      allOf:
+        - $ref: '#/components/schemas/Password'
+      minLength: 8
+      description: При регистрации требуется не менее 8 символов.
+    Inn:
+      type: string
+      pattern: '^(?:[0-9]{10}|[0-9]{12})$'
+      description: Строка из 10 или 12 ASCII-цифр. Начальные нули сохраняются.
+    CompanyName:
+      type: string
+      minLength: 1
+      pattern: '\S'
+      description: Название компании, содержащее хотя бы один непробельный символ.
+    OptionalText:
+      type: [string, 'null']
+    RegisterBuyerRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+        password:
+          $ref: '#/components/schemas/RegistrationPassword'
+        fullName:
+          $ref: '#/components/schemas/OptionalText'
+        phone:
+          $ref: '#/components/schemas/OptionalText'
+    RegisterSellerRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password, companyName, inn]
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+        password:
+          $ref: '#/components/schemas/RegistrationPassword'
+        companyName:
+          $ref: '#/components/schemas/CompanyName'
+        inn:
+          $ref: '#/components/schemas/Inn'
+        description:
+          $ref: '#/components/schemas/OptionalText'
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+        password:
+          $ref: '#/components/schemas/Password'
+    UpdateProfileRequest:
+      anyOf:
+        - $ref: '#/components/schemas/BuyerProfilePatch'
+        - $ref: '#/components/schemas/SellerProfilePatch'
+      description: Допустимые поля определяются ролью из access JWT.
+    BuyerProfilePatch:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          $ref: '#/components/schemas/OptionalText'
+        phone:
+          $ref: '#/components/schemas/OptionalText'
+    SellerProfilePatch:
+      type: object
+      additionalProperties: false
+      properties:
+        companyName:
+          $ref: '#/components/schemas/CompanyName'
+        description:
+          $ref: '#/components/schemas/OptionalText'
+    AccessToken:
+      type: string
+      minLength: 1
+      description: Подписанный access JWT.
+    AccessTokenResponse:
+      type: object
+      additionalProperties: false
+      required: [accessToken]
+      properties:
+        accessToken:
+          $ref: '#/components/schemas/AccessToken'
+    AuthResponse:
+      type: object
+      additionalProperties: false
+      required: [accessToken, user]
+      properties:
+        accessToken:
+          $ref: '#/components/schemas/AccessToken'
+        user:
+          $ref: '#/components/schemas/UserProfile'
+    UserProfile:
+      type: object
+      additionalProperties: false
+      required: [id, email, role, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          $ref: '#/components/schemas/Email'
+        role:
+          type: string
+          enum: [BUYER, SELLER, ADMIN]
+          description: Единственная роль аккаунта.
+        fullName:
+          $ref: '#/components/schemas/OptionalText'
+          description: ФИО покупателя.
+        phone:
+          $ref: '#/components/schemas/OptionalText'
+          description: Телефон покупателя.
+        companyName:
+          type: [string, 'null']
+          description: Название компании продавца.
+        inn:
+          anyOf:
+            - $ref: '#/components/schemas/Inn'
+            - type: 'null'
+          description: ИНН продавца. Задаётся один раз при регистрации.
+        description:
+          $ref: '#/components/schemas/OptionalText'
+          description: Описание магазина продавца.
+        department:
+          $ref: '#/components/schemas/OptionalText'
+          description: Подразделение администратора.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      allOf:
+        - if:
+            properties:
+              role:
+                const: SELLER
+          then:
+            required: [companyName, inn]
+            properties:
+              companyName:
+                $ref: '#/components/schemas/CompanyName'
+              inn:
+                $ref: '#/components/schemas/Inn'
+          else:
+            properties:
+              companyName:
+                type: 'null'
+              inn:
+                type: 'null'
+              description:
+                type: 'null'
+        - if:
+            properties:
+              role:
+                enum: [SELLER, ADMIN]
+          then:
+            properties:
+              fullName:
+                type: 'null'
+              phone:
+                type: 'null'
+        - if:
+            properties:
+              role:
+                enum: [BUYER, SELLER]
+          then:
+            properties:
+              department:
+                type: 'null'
+    Problem:
+      type: object
+      description: Problem Details (RFC 9457). timestamp — расширение API проекта.
+      required: [type, title, status, timestamp]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        timestamp:
+          type: string
+          format: date-time
+    ValidationProblem:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required: [details]
+          properties:
+            type:
+              const: ValidationError
+            status:
+              const: 422
+            details:
+              type: object
+              minProperties: 1
+              additionalProperties:
+                type: string
+              description: Первое сообщение для каждого поля запроса. Вложенные пути разделяются точкой.
+  responses:
+    MalformedJson:
+      description: Тело запроса отсутствует или содержит синтаксически некорректный JSON.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Bad Request
+            status: 400
+            detail: Не удалось прочитать JSON запроса
+            timestamp: '2026-11-11T12:00:00Z'
+    EmailConflict:
+      description: Этот email уже используется аккаунтом любой роли.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Conflict
+            status: 409
+            detail: Пользователь с таким email уже зарегистрирован
+            timestamp: '2026-11-11T12:00:00Z'
+    FieldValidation:
+      description: Синтаксис JSON корректен. Одно или несколько полей не прошли валидацию.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblem'
+          example:
+            type: ValidationError
+            title: Unprocessable Entity
+            status: 422
+            details:
+              email: Некорректный формат email
+            timestamp: '2026-11-11T12:00:00Z'
+    AccessUnauthorized:
+      description: Access JWT отсутствует, недействителен, истёк или аккаунт профиля не найден.
+      headers:
+        WWW-Authenticate:
+          description: Схема авторизации для защищённой операции.
+          schema:
+            type: string
+          example: Bearer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: about:blank
+            title: Unauthorized
+            status: 401
+            detail: Требуется действующий access-токен
+            timestamp: '2026-11-11T12:00:00Z'
+    CurrentProfile:
+      description: Текущий профиль аккаунта после операции.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserProfile'
+          examples:
+            buyer:
+              $ref: '#/components/examples/BuyerProfile'
+            seller:
+              $ref: '#/components/examples/SellerProfile'
+            admin:
+              $ref: '#/components/examples/AdminProfile'
+  examples:
+    BuyerSession:
+      value:
+        accessToken: example.header.signature
+        user:
+          id: 52df33fd-2075-46eb-b7c3-1e01314485e4
+          email: buyer@example.test
+          role: BUYER
+          fullName: Анна Иванова
+          phone: '+79990000001'
+          createdAt: '2026-11-11T12:00:00Z'
+          updatedAt: '2026-11-11T12:00:00Z'
+    SellerSession:
+      value:
+        accessToken: example.header.signature
+        user:
+          id: 77b85be3-7d6d-48de-8aeb-d54f4019f587
+          email: seller@example.test
+          role: SELLER
+          companyName: Магазин «Пример»
+          inn: '7701234560'
+          description: Товары для дома
+          createdAt: '2026-11-11T12:00:00Z'
+          updatedAt: '2026-11-11T12:00:00Z'
+    BuyerProfile:
+      value:
+        id: 52df33fd-2075-46eb-b7c3-1e01314485e4
+        email: buyer@example.test
+        role: BUYER
+        fullName: Анна Петрова
+        phone: null
+        createdAt: '2026-11-11T12:00:00Z'
+        updatedAt: '2026-11-11T12:05:00Z'
+    SellerProfile:
+      value:
+        id: 77b85be3-7d6d-48de-8aeb-d54f4019f587
+        email: seller@example.test
+        role: SELLER
+        companyName: Магазин «Пример»
+        inn: '7701234560'
+        description: Товары для дома и сада
+        createdAt: '2026-11-11T12:00:00Z'
+        updatedAt: '2026-11-11T12:07:00Z'
+    AdminProfile:
+      value:
+        id: 06a47b41-ec82-4eb4-a03c-dfe3c80c57d9
+        email: admin@example.test
+        role: ADMIN
+        department: Модерация
+        createdAt: '2026-11-11T12:00:00Z'
+        updatedAt: '2026-11-11T12:00:00Z'
