@@ -11,15 +11,15 @@
 
 ### 1.1. Аутентификация и авторизация (JWT + HttpOnly Cookie)
 В соответствии с лучшими практиками безопасности (OWASP) и требованиями ИБ:
-- **`accessToken`** (короткоживущий, ~15 минут):
-  - Возвращается в JSON-теле ответа (`{ "accessToken": "..." }`).
-  - Хранится на фронтенде исключительно в памяти приложения (React state / closure).
+- **`accessToken`** действует 15 минут.
+  - Возвращается в поле `accessToken` в JSON-теле ответа.
+  - Способ хранения access-токена на фронтенде остаётся открытым.
   - Передаётся в заголовке запросов: `Authorization: Bearer <access_token>`.
-- **`refreshToken`** (долгоживущий, ~7-30 дней):
+- **`refreshToken`** действует 30 дней.
   - Передаётся бэкендом через заголовок **`Set-Cookie`** с атрибутами:  
     `Set-Cookie: refreshToken=<token>; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000`
-  - Недоступен для чтения из JavaScript (`document.cookie`), что исключает кражу сессии через XSS-атаки.
-  - Автоматически отправляется браузером только на эндпоинты `/api/v1/auth/refresh` и `/api/v1/auth/logout`.
+  - Атрибут `HttpOnly` исключает чтение cookie через `document.cookie`.
+  - Браузер отправляет cookie в пределах `Path=/api/v1/auth` с учётом `Secure` и `SameSite`. Эндпоинт `/api/v1/auth/refresh` использует её для обновления сессии.
 - **Payload токена Access JWT:**
   ```json
   {
@@ -63,20 +63,22 @@
 **Префикс пути:** `/api/v1`  
 **Схема БД:** `auth`
 
+[Контракт Auth Service](./auth_contract.md) содержит OpenAPI, примеры и статус реализации.
+
 ### 2.1. Регистрация и управление сессией
 | Метод | Путь | Доступ | Описание | US / Риск | Коды ответов |
 |---|---|---|---|---|---|
-| `POST` | `/auth/register/buyer` | Гость | Регистрация аккаунта покупателя (`email`, `password`, опционально `fullName`, `phone`). Создаёт запись в `users` с `role = 'BUYER'`. Возвращает `accessToken`, выставляет `refreshToken` в `HttpOnly Cookie`. | US-1.1 | `201 Created`, `400 Bad Request`, `409 Conflict` (дубликат email) |
-| `POST` | `/auth/register/seller` | Гость | Регистрация аккаунта продавца (`email`, `password`, `companyName`, `inn`, опционально `description`). Создаёт запись в `users` с `role = 'SELLER'`. Возвращает `accessToken`, выставляет `refreshToken` в `HttpOnly Cookie`. | US-1.2 | `201 Created`, `400 Bad Request`, `409 Conflict` (дубликат email), `422 Unprocessable Entity` (невалидный ИНН: не 10/12 цифр) |
-| `POST` | `/auth/login` | Гость | Вход по `email` и `password`. Возвращает `accessToken` в JSON, `refreshToken` выставляется в `HttpOnly Cookie`. | US-1.3 | `200 OK`, `400 Bad Request`, `401 Unauthorized` |
-| `POST` | `/auth/refresh` | Любой | Обновление сессии: читает `refreshToken` из `Cookie`. Возвращает новый `accessToken` в JSON и обновляет `refreshToken` в `HttpOnly Cookie`. | US-1.3 | `200 OK`, `401 Unauthorized` |
-| `POST` | `/auth/logout` | Авторизован | Завершение сессии: аннулирует refresh-токен в БД и сбрасывает куку в браузере (`Set-Cookie: refreshToken=; Max-Age=0; Path=/api/v1/auth; HttpOnly`). | Безопасность | `204 No Content`, `401 Unauthorized` |
+| `POST` | `/auth/register/buyer` | Гость | Создаёт аккаунт `BUYER` по `email` и `password`. `fullName` и `phone` необязательны. Возвращает `accessToken` и `user`, устанавливает refresh-cookie. | US-1.1 | `201`, `400`, `409`, `422` |
+| `POST` | `/auth/register/seller` | Гость | Создаёт активный аккаунт `SELLER` по `email`, `password`, `companyName` и `inn`. `description` необязательно. Возвращает `accessToken` и `user`, устанавливает refresh-cookie. | US-1.2 | `201`, `400`, `409`, `422` |
+| `POST` | `/auth/login` | Гость | Вход по `email` и `password`. Возвращает `accessToken` и `user`, устанавливает refresh-cookie. | US-1.3 | `200`, `400`, `401`, `422` |
+| `POST` | `/auth/refresh` | Refresh-cookie | Читает `refreshToken` из cookie, возвращает новый `accessToken` в JSON и обновляет refresh-cookie. | US-1.3 | `200 OK`, `401 Unauthorized` |
+| `POST` | `/auth/logout` | Bearer JWT | Сбрасывает refresh-cookie с `Max-Age=0`. Уже выпущенные JWT сохраняют свой срок действия. | Безопасность | `204 No Content`, `401 Unauthorized` |
 
 ### 2.2. Личный кабинет пользователя
 | Метод | Путь | Доступ | Описание | US / Риск | Коды ответов |
 |---|---|---|---|---|---|
 | `GET` | `/users/me` | Авторизован | Получение информации о текущем аккаунте (email, роль, а также реквизиты покупателя/продавца). | US-1.3, US-1.4 | `200 OK`, `401 Unauthorized` |
-| `PATCH` | `/users/me` | Авторизован | Редактирование своих данных. Покупатель может менять `fullName` и `phone`. Продавец может менять `companyName` и `description` (`inn` менять запрещено). Баланс бонусов не редактируется. | US-1.4 | `200 OK`, `400 Bad Request`, `401 Unauthorized` |
+| `PATCH` | `/users/me` | Авторизован | Покупатель меняет `fullName` и `phone`. Продавец меняет `companyName` и `description`. | US-1.4 | `200`, `400`, `401`, `422` |
 
 ---
 
