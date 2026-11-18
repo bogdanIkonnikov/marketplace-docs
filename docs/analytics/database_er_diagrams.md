@@ -79,7 +79,7 @@
   - `title` (VARCHAR(255), not null) — наименование товара
   - `description` (TEXT) — подробное описание характеристик
   - `price` (BIGINT, not null) — цена в бонусах (целое число, >= 0)
-  - `status` (VARCHAR(50), not null) — жизненный цикл (`ACTIVE`, `INACTIVE`, `ARCHIVED`)
+  - `status` (VARCHAR(50), not null) — жизненный цикл (`ACTIVE`, `HIDDEN`, `ARCHIVED`)
   - `search_vector` (TSVECTOR) — вычисляемый вектор для полнотекстового поиска (Russian FTS + `pg_trgm`)
   - `created_at`, `updated_at` (TIMESTAMPTZ)
 - **Таблица `catalog.product_images` (связь товаров с медиафайлами):**
