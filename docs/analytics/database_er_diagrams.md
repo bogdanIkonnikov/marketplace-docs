@@ -11,15 +11,31 @@
 
 ## 1. Схема `auth` (Auth Service)
 
-Отвечает за учётные записи пользователей, аутентификацию (Stateless JWT + HttpOnly cookie) и хранение реквизитов ролей в единой таблице `users`.
+Отвечает за учётные записи пользователей, аутентификацию (Stateless JWT + HttpOnly cookie) и хранение профилей ролей в связанных таблицах `users`, `buyer_profiles` и `seller_profiles`.
 
 ![Схема Auth](./img/auth_schema.svg)
 
-### Структура таблицы `auth.users`:
-- **Общие поля аккаунта:** `id` (PK, UUID), `email` (UK), `password_hash`, `role` (`BUYER`, `SELLER`, `ADMIN`), `created_at`, `updated_at`.
-- **Поля покупателя (`role = 'BUYER'`):** `full_name`, `phone` (необязательные, дозаполняются в ЛК).
-- **Поля продавца (`role = 'SELLER'`):** `company_name` (not null), `inn` (not null, 10 или 12 цифр, неизменяемый), `description`.
-- **Поля администратора (`role = 'ADMIN'`):** `department`.
+### Структура таблиц схемы `auth`:
+- **Таблица `auth.users` (базовый аккаунт):**
+  - `id` (PK, UUID)
+  - `email` (UK, VARCHAR(255))
+  - `password_hash` (VARCHAR(255))
+  - `role` (ENUM: `BUYER`, `SELLER`, `ADMIN`)
+  - `department` (VARCHAR(255), для `ADMIN`)
+  - `created_at`, `updated_at` (TIMESTAMPTZ)
+- **Таблица `auth.buyer_profiles` (профиль покупателя, 1:1 к users):**
+  - `id` (PK, UUID)
+  - `user_id` (FK, UK, UUID) — ссылка на `auth.users(id)`
+  - `full_name` (VARCHAR(255), опционально)
+  - `phone` (VARCHAR(50), опционально)
+  - `created_at`, `updated_at` (TIMESTAMPTZ)
+- **Таблица `auth.seller_profiles` (профиль продавца, 1:1 к users):**
+  - `id` (PK, UUID)
+  - `user_id` (FK, UK, UUID) — ссылка на `auth.users(id)`
+  - `company_name` (VARCHAR(255), not null)
+  - `inn` (UK, VARCHAR(12), not null, 10 или 12 цифр, неизменяемый)
+  - `description` (TEXT, опционально)
+  - `created_at`, `updated_at` (TIMESTAMPTZ)
 
 ### Ключевые особенности схемы `auth`:
 - **100% Stateless JWT:** Сервер не хранит сессии или токены в базе данных. Выпуск и проверка `accessToken` и `refreshToken` происходят исключительно по криптографической подписи.
