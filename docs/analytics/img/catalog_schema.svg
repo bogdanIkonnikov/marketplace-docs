@@ -1,11 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 627.27 334" width="627.27" height="334" style="--bg:#18181B;--fg:#F4F4F5;--line:#71717A;--muted:#A1A1AA;--surface:#27272A;--border:#3F3F46;background:var(--bg)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 370" width="720" height="370" style="--bg:#18181B;--fg:#F4F4F5;--line:#71717A;--muted:#A1A1AA;--surface:#27272A;--border:#3F3F46;background:var(--bg)">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
   text { font-family: 'Inter', system-ui, sans-serif; }
   .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace; }
   svg {
-    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
     --_text:          var(--fg);
     --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
     --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
@@ -20,77 +19,115 @@
     --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
   }
 </style>
-<defs>
-</defs>
-<polyline class="er-relationship" data-entity1="products" data-entity2="product_images" data-cardinality1="one" data-cardinality2="zero-many" data-identifying="true" data-label="has" points="219.79999999999998,167 427.27,167" fill="none" stroke="var(--_line)" stroke-width="1" />
-<g class="entity" data-id="products" data-label="products">
-  <rect x="40" y="40" width="179.79999999999998" height="254" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
-  <rect x="40" y="40" width="179.79999999999998" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
-  <text x="129.89999999999998" y="57" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">products</text>
-  <line x1="40" y1="74" x2="219.79999999999998" y2="74" stroke="var(--_node-stroke)" stroke-width="0.75" />
+
+<!-- RELATIONSHIPS -->
+<!-- categories self-reference (parent_id -> id) -->
+<polyline points="40,107 18,107 18,85 40,85" fill="none" stroke="var(--_line)" stroke-width="1.25" />
+<circle cx="28" cy="107" r="3" fill="var(--bg)" stroke="var(--_line)" stroke-width="1" />
+<text x="12" y="100" font-size="9" fill="var(--_text-muted)" text-anchor="end">parent</text>
+
+<!-- categories -> products (1 to many) -->
+<polyline points="230,85 270,129" fill="none" stroke="var(--_line)" stroke-width="1.25" />
+
+<!-- products -> product_images (1 to many) -->
+<polyline points="460,167 500,167" fill="none" stroke="var(--_line)" stroke-width="1.25" />
+<circle cx="492" cy="167" r="3.5" fill="var(--bg)" stroke="var(--_line)" stroke-width="1.2" />
+<text x="480" y="161" font-size="10" fill="var(--_text-muted)" text-anchor="middle">has</text>
+
+<!-- ==================== 1. CATEGORIES ==================== -->
+<g class="entity" data-id="categories" data-label="categories">
+  <rect x="40" y="40" width="190" height="166" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="40" width="190" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="135" y="57" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">categories</text>
+  <line x1="40" y1="74" x2="230" y2="74" stroke="var(--_node-stroke)" stroke-width="0.75" />
+
   <rect x="46" y="78" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
   <text x="57.155" y="85" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
   <text x="76.31" y="85" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
-  <text x="211.79999999999998" y="85" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">id</tspan></text>
-  <g><title>not null, логическая связь с seller_profiles</title>
-  <text x="48" y="107" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
-  <text x="211.79999999999998" y="107" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">seller_id</tspan></text>
-  </g>
-  <g><title>not null, название товара</title>
+  <text x="222" y="85" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">id</tspan></text>
+
+  <rect x="46" y="100" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="57.155" y="107" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">FK</text>
+  <text x="76.31" y="107" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="222" y="107" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">parent_id</tspan></text>
+
   <text x="48" y="129" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
-  <text x="211.79999999999998" y="129" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">title</tspan></text>
-  </g>
-  <g><title>not null, таб из Figma (electronics, clothing...)</title>
-  <text x="48" y="151" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
-  <text x="211.79999999999998" y="151" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">category</tspan></text>
-  </g>
-  <g><title>nullable</title>
-  <text x="48" y="173" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">text</tspan></text>
-  <text x="211.79999999999998" y="173" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">description</tspan></text>
-  </g>
-  <g><title>not null, в бонусах</title>
-  <text x="48" y="195" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">bigint</tspan></text>
-  <text x="211.79999999999998" y="195" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">price</tspan></text>
-  </g>
-  <g><title>not null (ACTIVE, HIDDEN, ARCHIVED)</title>
-  <text x="48" y="217" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
-  <text x="211.79999999999998" y="217" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">status</tspan></text>
-  </g>
-  <g><title>индекс полнотекстового поиска</title>
-  <text x="48" y="239" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">tsvector</tspan></text>
-  <text x="211.79999999999998" y="239" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">search_vector</tspan></text>
-  </g>
-  <text x="48" y="261" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">timestamptz</tspan></text>
-  <text x="211.79999999999998" y="261" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">created_at</tspan></text>
-  <text x="48" y="283" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">timestamptz</tspan></text>
-  <text x="211.79999999999998" y="283" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">updated_at</tspan></text>
+  <text x="222" y="129" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">name</tspan></text>
+
+  <rect x="46" y="144" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="57.155" y="151" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">UK</text>
+  <text x="76.31" y="151" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
+  <text x="222" y="151" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">slug</tspan></text>
+
+  <text x="48" y="173" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">int</tspan></text>
+  <text x="222" y="173" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">sort_order</tspan></text>
+
+  <text x="48" y="195" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">boolean</tspan></text>
+  <text x="222" y="195" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">is_active</tspan></text>
 </g>
+
+<!-- ==================== 2. PRODUCTS ==================== -->
+<g class="entity" data-id="products" data-label="products">
+  <rect x="270" y="40" width="190" height="254" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="270" y="40" width="190" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="365" y="57" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">products</text>
+  <line x1="270" y1="74" x2="460" y2="74" stroke="var(--_node-stroke)" stroke-width="0.75" />
+
+  <rect x="276" y="78" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="287.155" y="85" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
+  <text x="306.31" y="85" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="452" y="85" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">id</tspan></text>
+
+  <rect x="276" y="100" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="287.155" y="107" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">FK</text>
+  <text x="306.31" y="107" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="452" y="107" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">seller_id</tspan></text>
+
+  <rect x="276" y="122" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="287.155" y="129" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">FK</text>
+  <text x="306.31" y="129" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="452" y="129" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">category_id</tspan></text>
+
+  <text x="278" y="151" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
+  <text x="452" y="151" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">title</tspan></text>
+
+  <text x="278" y="173" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">text</tspan></text>
+  <text x="452" y="173" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">description</tspan></text>
+
+  <text x="278" y="195" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">bigint</tspan></text>
+  <text x="452" y="195" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">price</tspan></text>
+
+  <text x="278" y="217" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
+  <text x="452" y="217" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">status</tspan></text>
+
+  <text x="278" y="239" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">tsvector</tspan></text>
+  <text x="452" y="239" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">search_vector</tspan></text>
+
+  <text x="278" y="261" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">timestamptz</tspan></text>
+  <text x="452" y="261" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">created_at</tspan></text>
+
+  <text x="278" y="283" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">timestamptz</tspan></text>
+  <text x="452" y="283" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">updated_at</tspan></text>
+</g>
+
+<!-- ==================== 3. PRODUCT_IMAGES ==================== -->
 <g class="entity" data-id="product_images" data-label="product_images">
-  <rect x="427.27" y="117" width="160" height="100" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
-  <rect x="427.27" y="117" width="160" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
-  <text x="507.27" y="134" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">product_images</text>
-  <line x1="427.27" y1="151" x2="587.27" y2="151" stroke="var(--_node-stroke)" stroke-width="0.75" />
-  <rect x="433.27" y="155" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
-  <text x="444.42499999999995" y="162" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
-  <text x="463.58" y="162" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
-  <text x="579.27" y="162" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">product_id</tspan></text>
-  <g><title>логическая связь с media_files</title>
-  <rect x="433.27" y="177" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
-  <text x="444.42499999999995" y="184" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
-  <text x="463.58" y="184" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
-  <text x="579.27" y="184" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">media_id</tspan></text>
-  </g>
-  <g><title>порядок показа</title>
-  <text x="435.27" y="206" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">int</tspan></text>
-  <text x="579.27" y="206" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">sort_order</tspan></text>
-  </g>
+  <rect x="500" y="117" width="180" height="100" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="500" y="117" width="180" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="590" y="134" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">product_images</text>
+  <line x1="500" y1="151" x2="680" y2="151" stroke="var(--_node-stroke)" stroke-width="0.75" />
+
+  <rect x="506" y="155" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="517.155" y="162" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
+  <text x="536.31" y="162" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="672" y="162" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">product_id</tspan></text>
+
+  <rect x="506" y="177" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="517.155" y="184" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
+  <text x="536.31" y="184" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="672" y="184" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">media_id</tspan></text>
+
+  <text x="508" y="206" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">int</tspan></text>
+  <text x="672" y="206" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">sort_order</tspan></text>
 </g>
-<line x1="223.79999999999998" y1="161" x2="223.79999999999998" y2="173" stroke="var(--_line)" stroke-width="1.25" />
-<line x1="227.79999999999998" y1="161" x2="227.79999999999998" y2="173" stroke="var(--_line)" stroke-width="1.25" />
-<line x1="423.27" y1="174" x2="411.27" y2="167" stroke="var(--_line)" stroke-width="1.25" />
-<line x1="423.27" y1="167" x2="411.27" y2="167" stroke="var(--_line)" stroke-width="1.25" />
-<line x1="423.27" y1="160" x2="411.27" y2="167" stroke="var(--_line)" stroke-width="1.25" />
-<circle cx="407.27" cy="167" r="4" fill="var(--bg)" stroke="var(--_line)" stroke-width="1.25" />
-<rect x="309.79999999999995" y="156.85" width="27.47" height="20.3" rx="2" ry="2" fill="var(--bg)" stroke="var(--_inner-stroke)" stroke-width="0.5" />
-<text x="323.53499999999997" y="167" text-anchor="middle" font-size="11" font-weight="400" fill="var(--_text-muted)" dy="3.8499999999999996">has</text>
 </svg>

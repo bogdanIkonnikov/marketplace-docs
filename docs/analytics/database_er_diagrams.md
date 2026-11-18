@@ -60,13 +60,39 @@
 
 ## 3. Схема `catalog` (Catalog & Search Service)
 
-Каталог товаров с категориями (табы из Figma) и защитой истории заказов.
+Каталог товаров с иерархическим деревом категорий (табы витрины из Figma), медиа-галереей и полнотекстовым поиском.
 
 ![Схема Catalog](./img/catalog_schema.svg)
 
+### Структура таблиц схемы `catalog`:
+- **Таблица `catalog.categories` (категории и табы витрины):**
+  - `id` (PK, UUID, DEFAULT `gen_random_uuid()`)
+  - `parent_id` (FK, UUID, ON DELETE CASCADE) — ссылка на саму себя (`catalog.categories(id)`). Для корневых табов витрины `parent_id IS NULL`, для подкатегорий — UUID родителя
+  - `name` (VARCHAR(100), not null) — отображаемое название (например, «Электроника», «Смартфоны»)
+  - `slug` (UK, VARCHAR(100), not null) — уникальный URL-friendly идентификатор для фильтрации в каталоге (`?category=electronics`)
+  - `sort_order` (INT, not null, DEFAULT 0) — порядок вывода табов в интерфейсе (`ORDER BY sort_order ASC, name ASC`)
+  - `is_active` (BOOLEAN, not null, DEFAULT true) — флаг доступности категории на витрине
+- **Таблица `catalog.products` (карточки товаров):**
+  - `id` (PK, UUID, DEFAULT `gen_random_uuid()`)
+  - `seller_id` (FK, UUID, not null) — логическая связь с `auth.seller_profiles(id)`
+  - `category_id` (FK, UUID, not null) — ссылка на `catalog.categories(id)`
+  - `title` (VARCHAR(255), not null) — наименование товара
+  - `description` (TEXT) — подробное описание характеристик
+  - `price` (BIGINT, not null) — цена в бонусах (целое число, >= 0)
+  - `status` (VARCHAR(50), not null) — жизненный цикл (`ACTIVE`, `INACTIVE`, `ARCHIVED`)
+  - `search_vector` (TSVECTOR) — вычисляемый вектор для полнотекстового поиска (Russian FTS + `pg_trgm`)
+  - `created_at`, `updated_at` (TIMESTAMPTZ)
+- **Таблица `catalog.product_images` (связь товаров с медиафайлами):**
+  - `product_id` (PK, FK, UUID) — ссылка на `catalog.products(id)` с каскадным удалением
+  - `media_id` (PK, UUID) — логическая связь с `media.media_files(id)`
+  - `sort_order` (INT, not null, DEFAULT 0) — порядок показа изображений в карусели
+
 ### Ключевые инварианты схемы `catalog`:
-- Поле `seller_id` ссылается на `id` аккаунта пользователя из схемы `auth` с ролью `SELLER`.
-- Товар в статусе `ACTIVE` виден в публичной витрине и доступен для добавления в корзину.
+- **Иерархия категорий:** Поддерживает древовидную вложенность любой глубины. Корневые табы витрины имеют `parent_id IS NULL`. При удалении категории все дочерние подкатегории удаляются каскадно (`ON DELETE CASCADE`).
+- **Связь товаров с категорией:** Каждый товар строго привязан к категории через `category_id` (FK). Исключается появление дублирующих и неструктурированных строковых названий категорий от продавцов.
+- **Владелец товара:** Поле `seller_id` ссылается на профиль мерчанта из `auth.seller_profiles`. Только владелец товара имеет право редактировать или переводить его в архив.
+- **Полнотекстовый и нечёткий поиск:** Поле `search_vector` индексируется `GIN` и обновляется триггером при изменении `title` и `description`. Индекс `pg_trgm` обеспечивает устойчивость к опечаткам.
+- **Видимость на витрине:** Товар доступен для поиска и оформления заказа только при совпадении условий: `products.status = 'ACTIVE'` и `categories.is_active = true`.
 
 ---
 

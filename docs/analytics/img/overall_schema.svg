@@ -34,12 +34,15 @@
 <text x="40" y="713" class="service-tag" fill="#F472B6">Media Service (S3 Storage)</text>
 
 <!-- CATALOG SERVICE BOUNDARY -->
-<rect x="510" y="290" width="220" height="515" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
-<text x="525" y="308" class="service-tag" fill="#34D399">Catalog Service</text>
+<rect x="510" y="192" width="220" height="613" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+<text x="525" y="206" class="service-tag" fill="#34D399">Catalog Service</text>
 
 <!-- COMMERCE SERVICE BOUNDARY -->
-<rect x="510" y="20" width="705" height="260" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
-<text x="525" y="38" class="service-tag" fill="#FBBF24">Commerce Service (Wallet &amp; Loyalty)</text>
+<rect x="510" y="20" width="220" height="168" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+<text x="525" y="38" class="service-tag" fill="#FBBF24">Commerce Service (Wallets)</text>
+
+<rect x="745" y="20" width="470" height="260" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+<text x="760" y="38" class="service-tag" fill="#FBBF24">Commerce Service (Loyalty &amp; Bonus)</text>
 
 <rect x="745" y="290" width="470" height="515" rx="6" fill="var(--_group-fill)" stroke="var(--_border)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
 <text x="760" y="308" class="service-tag" fill="#FBBF24">Commerce Service (Orders &amp; Checkout)</text>
@@ -106,10 +109,16 @@
 <polyline class="rel-line" points="865,390 865,272" />
 <text x="872" y="335" class="lbl">payment</text>
 
-<!-- 13. cart_items -> orders (checkout flow) [CLEAN CHANNEL] -->
-<polyline class="halo" points="480,345 745,345 745,455 760,455" />
-<polyline class="rel-line" points="480,345 745,345 745,455 760,455" />
-<text x="700" y="340" class="lbl">checkout</text>
+<!-- 13. categories self-reference (parent_id -> id) -->
+<polyline class="halo" points="520,279 505,279 505,257 520,257" />
+<polyline class="rel-line" points="520,279 505,279 505,257 520,257" />
+<circle cx="510" cy="279" r="2.5" fill="var(--bg)" stroke="var(--_line)" stroke-width="1" />
+<text x="498" y="272" class="lbl" text-anchor="end">parent</text>
+
+<!-- 14. categories -> products (category_id) [VERTICAL DIRECT] -->
+<polyline class="halo" points="620,378 620,390" />
+<polyline class="rel-line" points="620,378 620,390" />
+<text x="625" y="386" class="lbl">1:N</text>
 
 
 <!-- ==================== ENTITY TABLES ==================== -->
@@ -309,6 +318,38 @@
   <text x="472" y="637" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">updated_at</tspan></text>
 </g>
 
+<!-- 6b. CATEGORIES (CATALOG DOMAIN) -->
+<g class="entity" data-id="categories" data-label="categories">
+  <rect x="520" y="212" width="200" height="166" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="520" y="212" width="200" height="34" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="620" y="229" text-anchor="middle" font-size="13" font-weight="700" fill="var(--_text)" dy="4.55">categories</text>
+  <line x1="520" y1="246" x2="720" y2="246" stroke="var(--_node-stroke)" stroke-width="0.75" />
+
+  <rect x="526" y="250" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="537.155" y="257" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">PK</text>
+  <text x="556.31" y="257" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="712" y="257" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">id</tspan></text>
+
+  <rect x="526" y="272" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="537.155" y="279" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">FK</text>
+  <text x="556.31" y="279" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="712" y="279" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">parent_id</tspan></text>
+
+  <text x="528" y="301" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
+  <text x="712" y="301" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">name</tspan></text>
+
+  <rect x="526" y="316" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="537.155" y="323" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">UK</text>
+  <text x="556.31" y="323" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
+  <text x="712" y="323" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">slug</tspan></text>
+
+  <text x="528" y="345" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">int</tspan></text>
+  <text x="712" y="345" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">sort_order</tspan></text>
+
+  <text x="528" y="367" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">boolean</tspan></text>
+  <text x="712" y="367" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">is_active</tspan></text>
+</g>
+
 <!-- 7. PRODUCTS (CATALOG DOMAIN) -->
 <g class="entity" data-id="products" data-label="products">
   <rect x="520" y="390" width="200" height="254" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
@@ -329,8 +370,10 @@
   <text x="528" y="479" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
   <text x="712" y="479" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">title</tspan></text>
 
-  <text x="528" y="501" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">varchar</tspan></text>
-  <text x="712" y="501" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">category</tspan></text>
+  <rect x="526" y="494" width="22.31" height="14" rx="2" ry="2" fill="var(--_key-badge)" />
+  <text x="537.155" y="501" text-anchor="middle" dy="0.35em" font-size="9" font-weight="600" fill="var(--_text-sec)">FK</text>
+  <text x="556.31" y="501" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">uuid</tspan></text>
+  <text x="712" y="501" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">category_id</tspan></text>
 
   <text x="528" y="523" class="mono" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-muted)">text</tspan></text>
   <text x="712" y="523" class="mono" text-anchor="end" dy="0.35em" font-size="11" font-weight="400"><tspan fill="var(--_text-sec)">description</tspan></text>

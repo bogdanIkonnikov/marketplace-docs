@@ -138,20 +138,21 @@ Catalog ведёт витрину и ассортимент. Публично о
 ### 4.1. Публичная витрина (неавторизованная зона)
 | Метод | Путь | Доступ | Описание | US / Риск | Коды ответов |
 |---|---|---|---|---|---|
-| `GET` | `/catalog/products` | Гость / Все | Поиск и каталог товаров только в статусе `ACTIVE`. Полнотекстовый поиск (`tsvector`, русская морфология) + триграммы (`pg_trgm`). <br />**Параметры:** `q`, `f[category]=slug`, `f[price]=min,max`, `f[sellerId]=uuid`, `sort=price,asc|createdAt,desc`, `page`, `size`. Фильтр по категории поддерживает множественный выбор (например, `f[category]=electronics,books`). | US-2.1, US-2.2, CT-01, CT-02 | `200 OK`, `400 Bad Request` |
+| `GET` | `/catalog/categories` | Гость / Все | Получение списка и дерева активных категорий (`is_active = true`) для табов витрины из Figma. Поддерживает плоский список или иерархическую структуру. Отсортировано по `sort_order ASC, name ASC`. <br />**Параметры:** `tree=true|false` (по умолчанию `true`), `parentId=uuid` (фильтр по подкатегориям конкретного родителя). | US-2.1 | `200 OK` |
+| `GET` | `/catalog/products` | Гость / Все | Поиск и каталог товаров только в статусе `ACTIVE`. Полнотекстовый поиск (`tsvector`, русская морфология) + триграммы (`pg_trgm`). <br />**Параметры:** `q`, `f[category]=slug`, `f[categoryId]=uuid`, `f[price]=min,max`, `f[sellerId]=uuid`, `sort=price,asc|createdAt,desc`, `page`, `size`. Фильтр по категории поддерживает множественный выбор (например, `f[category]=electronics,books`). | US-2.1, US-2.2, CT-01, CT-02 | `200 OK`, `400 Bad Request` |
 | `GET` | `/catalog/products/{id}` | Гость / Все | Просмотр детальной карточки активного товара (название, категория, описание, цена, фото, данные магазина продавца). | US-2.1 | `200 OK`, `404 Not Found` (если товар скрыт, архивный или удалён) |
 
 ### 4.2. Управление товарами (Продавец и Админ)
 | Метод | Путь | Доступ | Описание | US / Риск | Коды ответов |
 |---|---|---|---|---|---|
-| `GET` | `/seller/products` | Продавец | Просмотр товаров собственного магазина (`seller_id = current_user.id`) во всех статусах (`ACTIVE`, `HIDDEN`, `ARCHIVED`). Поддерживает фильтр `f[category]=...`. | US-3.2, CT-03 | `200 OK`, `403 Forbidden` |
-| `POST` | `/seller/products` | Продавец | Создание товара (`title`, `category`, `price > 0`, `description`, `imageIds`). Привязывается к `current_user.id`. Начальный статус: `ACTIVE`. | US-3.3, CT-05, R-10 | `201 Created`, `400 Bad Request`, `403 Forbidden`, `422 Unprocessable Entity` |
-| `PUT` | `/seller/products/{id}` | Продавец | Полное обновление своего товара (включая `category`). Попытка изменить чужой товар отклоняется. | US-3.3, CT-06 | `200 OK`, `400 Bad Request`, `403 Forbidden`, `404 Not Found` |
+| `GET` | `/seller/products` | Продавец | Просмотр товаров собственного магазина (`seller_id = current_user.id`) во всех статусах (`ACTIVE`, `HIDDEN`, `ARCHIVED`). Поддерживает фильтр `f[category]=...`, `f[categoryId]=...`. | US-3.2, CT-03 | `200 OK`, `403 Forbidden` |
+| `POST` | `/seller/products` | Продавец | Создание товара (`title`, `categoryId`, `price > 0`, `description`, `imageIds`). Привязывается к `current_user.id`. Начальный статус: `ACTIVE`. | US-3.3, CT-05, R-10 | `201 Created`, `400 Bad Request`, `403 Forbidden`, `422 Unprocessable Entity` |
+| `PUT` | `/seller/products/{id}` | Продавец | Полное обновление своего товара (включая `categoryId`). Попытка изменить чужой товар отклоняется. | US-3.3, CT-06 | `200 OK`, `400 Bad Request`, `403 Forbidden`, `404 Not Found` |
 | `PATCH` | `/seller/products/{id}/status` | Продавец | Скрытие или повторная публикация: `ACTIVE ↔ HIDDEN`. Перевод `ARCHIVED` в другие статусы запрещён. | US-3.4, CT-08, CT-11 | `200 OK`, `403 Forbidden`, `409 Conflict` |
 | `DELETE` | `/seller/products/{id}` | Продавец | Физическое удаление товара. Если товар встречался в заказах (проверяется через Commerce Service), возвращается `409 Conflict` и товар переводится в `ARCHIVED`. | US-3.4, CT-09, CT-10, R-04, R-07 | `204 No Content` (физически удалён), `409 Conflict` (переведён в `ARCHIVED`) |
 | `GET` | `/admin/products` | Админ | Просмотр товаров всех продавцов с фильтрами по статусам, категориям и мерчантам. | US-3.2, CT-03 | `200 OK`, `403 Forbidden` |
-| `POST` | `/admin/products` | Админ | Создание товара от имени любого продавца (в теле передаются `seller_id`, `category`). | US-3.3, CT-05 | `201 Created`, `400 Bad Request`, `422 Unprocessable Entity` |
-| `PUT` | `/admin/products/{id}` | Админ | Редактирование любого товара в системе (включая `category`). | US-3.3, CT-06 | `200 OK`, `400 Bad Request`, `404 Not Found` |
+| `POST` | `/admin/products` | Админ | Создание товара от имени любого продавца (в теле передаются `seller_id`, `categoryId`). | US-3.3, CT-05 | `201 Created`, `400 Bad Request`, `422 Unprocessable Entity` |
+| `PUT` | `/admin/products/{id}` | Админ | Редактирование любого товара в системе (включая `categoryId`). | US-3.3, CT-06 | `200 OK`, `400 Bad Request`, `404 Not Found` |
 | `DELETE` | `/admin/products/{id}` | Админ | Удаление или архивирование любого товара. | US-3.4, CT-09 | `204 No Content`, `409 Conflict` |
 
 ### 4.3. Межсервисный API (Internal REST)
