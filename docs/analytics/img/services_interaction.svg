@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 500" width="920" height="500" style="background:#18181B; font-family:'Inter',system-ui,-apple-system,sans-serif;">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#A1A1AA"/>
+  </marker>
+  <marker id="arrow-white" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#F4F4F5"/>
+  </marker>
+</defs>
+
+<!-- Header -->
+<text x="40" y="32" font-size="14" font-weight="600" fill="#F4F4F5" letter-spacing="0.02em">Взаимодействие микросервисов маркетплейса</text>
+<text x="40" y="48" font-size="11" fill="#71717A">REST API • MinIO S3 Presigned Upload • Stateless JWT • Межсервисный обмен Catalog ↔ Commerce</text>
+
+<!-- 1. Client Layer -->
+<rect x="40" y="70" width="840" height="52" rx="6" fill="#222226" stroke="#3F3F46" stroke-width="1"/>
+<text x="56" y="93" font-size="12" font-weight="600" fill="#F4F4F5">Клиентский уровень (Web SPA / Mobile App)</text>
+<text x="56" y="108" font-size="10" fill="#A1A1AA">Покупатель • Продавец • Администратор  |  Stateless JWT Bearer + Refresh HttpOnly Cookie</text>
+
+<!-- 2. Services Row -->
+
+<!-- Auth Service -->
+<g transform="translate(40, 160)">
+  <rect x="0" y="0" width="195" height="150" rx="6" fill="#222226" stroke="#3F3F46" stroke-width="1"/>
+  <rect x="0" y="0" width="195" height="28" rx="6" fill="#2A2A30"/>
+  <rect x="0" y="22" width="195" height="6" fill="#2A2A30"/>
+  <text x="12" y="19" font-size="11" font-weight="600" fill="#F4F4F5">Auth Service</text>
+  <text x="183" y="19" font-size="10" fill="#71717A" text-anchor="end">:8081</text>
+  
+  <text x="12" y="44" font-size="9" font-weight="600" fill="#71717A">СХЕМА: auth</text>
+  <text x="12" y="62" font-size="9.5" fill="#D4D4D8">• Регистрация и логин</text>
+  <text x="12" y="77" font-size="9.5" fill="#D4D4D8">• Выпуск JWT и refresh-куки</text>
+  <text x="12" y="92" font-size="9.5" fill="#D4D4D8">• Профили покупателя/селлера</text>
+  <text x="12" y="112" font-size="8.5" fill="#71717A">Media, Catalog и Commerce</text>
+  <text x="12" y="124" font-size="8.5" fill="#71717A">проверяют JWT локально</text>
+</g>
+
+<!-- Media Service -->
+<g transform="translate(255, 160)">
+  <rect x="0" y="0" width="195" height="150" rx="6" fill="#222226" stroke="#3F3F46" stroke-width="1"/>
+  <rect x="0" y="0" width="195" height="28" rx="6" fill="#2A2A30"/>
+  <rect x="0" y="22" width="195" height="6" fill="#2A2A30"/>
+  <text x="12" y="19" font-size="11" font-weight="600" fill="#F4F4F5">Media Service</text>
+  <text x="183" y="19" font-size="10" fill="#71717A" text-anchor="end">:8082</text>
+  
+  <text x="12" y="44" font-size="9" font-weight="600" fill="#71717A">СХЕМА: media</text>
+  <text x="12" y="62" font-size="9.5" fill="#D4D4D8">• Presigned PUT URL (TTL 15m)</text>
+  <text x="12" y="77" font-size="9.5" fill="#D4D4D8">• Метаданные изображений</text>
+  <text x="12" y="92" font-size="9.5" fill="#D4D4D8">• Статусы PENDING / CONFIRMED</text>
+  <text x="12" y="112" font-size="8.5" fill="#71717A">HeadObject в S3 при confirm,</text>
+  <text x="12" y="124" font-size="8.5" fill="#71717A">отдаёт публичный URL файла</text>
+</g>
+
+<!-- Catalog Service -->
+<g transform="translate(470, 160)">
+  <rect x="0" y="0" width="195" height="150" rx="6" fill="#222226" stroke="#3F3F46" stroke-width="1"/>
+  <rect x="0" y="0" width="195" height="28" rx="6" fill="#2A2A30"/>
+  <rect x="0" y="22" width="195" height="6" fill="#2A2A30"/>
+  <text x="12" y="19" font-size="11" font-weight="600" fill="#F4F4F5">Catalog Service</text>
+  <text x="183" y="19" font-size="10" fill="#71717A" text-anchor="end">:8083</text>
+  
+  <text x="12" y="44" font-size="9" font-weight="600" fill="#71717A">СХЕМА: catalog</text>
+  <text x="12" y="62" font-size="9.5" fill="#D4D4D8">• Витрина, поиск, категории</text>
+  <text x="12" y="77" font-size="9.5" fill="#D4D4D8">• Товары продавцов</text>
+  <text x="12" y="92" font-size="9.5" fill="#D4D4D8">• Статусы ACTIVE, HIDDEN</text>
+  <text x="12" y="112" font-size="8.5" fill="#71717A">Отвечает Commerce на валидацию</text>
+  <text x="12" y="124" font-size="8.5" fill="#71717A">товаров корзины при чекауте</text>
+</g>
+
+<!-- Commerce Service -->
+<g transform="translate(685, 160)">
+  <rect x="0" y="0" width="195" height="150" rx="6" fill="#222226" stroke="#3F3F46" stroke-width="1"/>
+  <rect x="0" y="0" width="195" height="28" rx="6" fill="#2A2A30"/>
+  <rect x="0" y="22" width="195" height="6" fill="#2A2A30"/>
+  <text x="12" y="19" font-size="11" font-weight="600" fill="#F4F4F5">Commerce Service</text>
+  <text x="183" y="19" font-size="10" fill="#71717A" text-anchor="end">:8084</text>
+  
+  <text x="12" y="44" font-size="9" font-weight="600" fill="#71717A">СХЕМА: commerce</text>
+  <text x="12" y="62" font-size="9.5" fill="#D4D4D8">• Корзина покупателя</text>
+  <text x="12" y="77" font-size="9.5" fill="#D4D4D8">• Кошелёк и журнал бонусов</text>
+  <text x="12" y="92" font-size="9.5" fill="#D4D4D8">• Чекаут со сплитом по селлерам</text>
+  <text x="12" y="112" font-size="8.5" fill="#71717A">Хранит снимки цен/названий,</text>
+  <text x="12" y="124" font-size="8.5" fill="#71717A">ведёт статусы заказов</text>
+</g>
+
+<!-- 3. MinIO S3 Storage Box -->
+<g transform="translate(255, 360)">
+  <rect x="0" y="0" width="195" height="70" rx="6" fill="#1C1C20" stroke="#3F3F46" stroke-width="1"/>
+  <text x="12" y="22" font-size="11" font-weight="600" fill="#F4F4F5">MinIO S3 Storage</text>
+  <text x="183" y="22" font-size="10" fill="#71717A" text-anchor="end">:9000</text>
+  <text x="12" y="40" font-size="9" fill="#A1A1AA">Бакет: marketplace-media</text>
+  <text x="12" y="55" font-size="8.5" fill="#71717A">Прямой бинарный upload от клиента</text>
+</g>
+
+<!-- 4. Client to Services Arrows -->
+<!-- Client -> Auth -->
+<line x1="137" y1="122" x2="137" y2="158" stroke="#A1A1AA" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="142" y="144" font-size="8.5" fill="#71717A">/auth/*</text>
+
+<!-- Client -> Media -->
+<line x1="320" y1="122" x2="320" y2="158" stroke="#A1A1AA" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="325" y="144" font-size="8.5" fill="#71717A">/upload</text>
+
+<!-- Client -> Catalog -->
+<line x1="567" y1="122" x2="567" y2="158" stroke="#A1A1AA" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="572" y="144" font-size="8.5" fill="#71717A">/products</text>
+
+<!-- Client -> Commerce -->
+<line x1="782" y1="122" x2="782" y2="158" stroke="#A1A1AA" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="787" y="144" font-size="8.5" fill="#71717A">/cart, /orders</text>
+
+<!-- Client direct to MinIO (dashed) -->
+<path d="M 235 122 C 235 240, 235 340, 253 385" fill="none" stroke="#71717A" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+<text x="175" y="360" font-size="8" fill="#71717A">PUT в S3</text>
+
+<!-- Media -> MinIO (HeadObject) -->
+<line x1="352" y1="310" x2="352" y2="358" stroke="#A1A1AA" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="358" y="338" font-size="8" fill="#71717A">HeadObject</text>
+
+<!-- 5. Internal REST Calls (Catalog <-> Commerce) -->
+<!-- Commerce -> Catalog: validate-batch -->
+<path d="M 685 200 L 667 200" fill="none" stroke="#F4F4F5" stroke-width="1.5" marker-end="url(#arrow-white)"/>
+<!-- Catalog -> Commerce: has-product -->
+<path d="M 665 240 L 683 240" fill="none" stroke="#F4F4F5" stroke-width="1.5" marker-end="url(#arrow-white)"/>
+
+<!-- Inter-service call annotations box -->
+<g transform="translate(470, 360)">
+  <rect x="0" y="0" width="410" height="70" rx="6" fill="#1C1C20" stroke="#3F3F46" stroke-width="1"/>
+  <text x="12" y="18" font-size="10" font-weight="600" fill="#F4F4F5">Синхронный межсервисный REST API:</text>
+  
+  <text x="12" y="36" font-size="9" font-family="'JetBrains Mono',monospace" fill="#E4E4E7">Commerce → Catalog: POST /internal/products/validate-batch</text>
+  <text x="12" y="47" font-size="8" fill="#71717A">Сверка актуальности цен и статуса ACTIVE перед списанием бонусов</text>
+  
+  <text x="12" y="59" font-size="9" font-family="'JetBrains Mono',monospace" fill="#E4E4E7">Catalog → Commerce: GET /internal/orders/has-product/{id}</text>
+  <text x="12" y="70" font-size="8" fill="#71717A">Защита от удаления: перевод в ARCHIVED, если товар уже был в заказах</text>
+</g>
+
+<!-- Footer note -->
+<text x="40" y="475" font-size="9" fill="#52525B">Database-per-Service: PostgreSQL 16 (схемы auth, media, catalog, commerce) • Все сервисы независимы, внешние ключи между схемами отсутствуют</text>
+
+</svg>
