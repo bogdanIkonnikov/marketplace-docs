@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 280" width="980" height="280" style="--bg:#18181B;--fg:#F4F4F5;--line:#71717A;--muted:#A1A1AA;--surface:#27272A;--border:#3F3F46;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+</style>
+
+<!-- Services -->
+<rect x="24" y="24" width="210" height="52" rx="6" fill="var(--surface)" stroke="#60A5FA" stroke-width="1.5" />
+<text x="129" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#60A5FA">Auth Service</text>
+<text x="129" y="65" text-anchor="middle" font-size="11" fill="var(--muted)">:8081 — JWT, профили</text>
+
+<rect x="264" y="24" width="210" height="52" rx="6" fill="var(--surface)" stroke="#F472B6" stroke-width="1.5" />
+<text x="369" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#F472B6">Media Service</text>
+<text x="369" y="65" text-anchor="middle" font-size="11" fill="var(--muted)">:8082 — загрузка файлов</text>
+
+<rect x="504" y="24" width="210" height="52" rx="6" fill="var(--surface)" stroke="#34D399" stroke-width="1.5" />
+<text x="609" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#34D399">Catalog Service</text>
+<text x="609" y="65" text-anchor="middle" font-size="11" fill="var(--muted)">:8083 — витрина, поиск</text>
+
+<rect x="744" y="24" width="210" height="52" rx="6" fill="var(--surface)" stroke="#FBBF24" stroke-width="1.5" />
+<text x="849" y="48" text-anchor="middle" font-size="13" font-weight="700" fill="#FBBF24">Commerce Service</text>
+<text x="849" y="65" text-anchor="middle" font-size="11" fill="var(--muted)">:8084 — корзина, заказы</text>
+
+<!-- PostgreSQL cluster -->
+<rect x="24" y="120" width="930" height="62" rx="6" fill="#1F2937" stroke="#60A5FA" stroke-width="1.25" />
+<text x="42" y="142" font-size="12" font-weight="700" fill="var(--fg)">PostgreSQL 17 (Database-per-Service — логические схемы)</text>
+<text x="42" y="164" class="mono" font-size="11" fill="var(--muted)">schema: auth (users, profiles)</text>
+<text x="282" y="164" class="mono" font-size="11" fill="var(--muted)">schema: media (media_files)</text>
+<text x="522" y="164" class="mono" font-size="11" fill="var(--muted)">schema: catalog (products, categories)</text>
+<text x="762" y="164" class="mono" font-size="11" fill="var(--muted)">schema: commerce (wallets, orders)</text>
+
+<!-- External Engines -->
+<rect x="264" y="206" width="210" height="52" rx="6" fill="var(--surface)" stroke="#F472B6" stroke-width="1.25" stroke-dasharray="4 2" />
+<text x="369" y="229" text-anchor="middle" font-size="12" font-weight="700" fill="#F472B6">MinIO (S3)</text>
+<text x="369" y="247" text-anchor="middle" class="mono" font-size="11" fill="var(--muted)">bucket: marketplace-media</text>
+
+<rect x="504" y="206" width="210" height="52" rx="6" fill="var(--surface)" stroke="#34D399" stroke-width="1.25" stroke-dasharray="4 2" />
+<text x="609" y="229" text-anchor="middle" font-size="12" font-weight="700" fill="#34D399">Elasticsearch 9.0</text>
+<text x="609" y="247" text-anchor="middle" class="mono" font-size="11" fill="var(--muted)">index: products (US-2.2)</text>
+
+<!-- Arrows -->
+<line x1="129" y1="76" x2="129" y2="120" stroke="#60A5FA" stroke-width="1.5" />
+<line x1="369" y1="76" x2="369" y2="120" stroke="#F472B6" stroke-width="1.5" />
+<line x1="609" y1="76" x2="609" y2="120" stroke="#34D399" stroke-width="1.5" />
+<line x1="849" y1="76" x2="849" y2="120" stroke="#FBBF24" stroke-width="1.5" />
+
+<line x1="450" y1="76" x2="450" y2="206" stroke="#F472B6" stroke-width="1.25" stroke-dasharray="4 3" />
+<line x1="690" y1="76" x2="690" y2="206" stroke="#34D399" stroke-width="1.25" stroke-dasharray="4 3" />
+</svg>
